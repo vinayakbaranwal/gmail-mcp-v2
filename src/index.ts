@@ -42,7 +42,7 @@ const oauth2Client = createOAuth2Client()
 
 const server = new McpServer({
   name: "Gmail-MCP",
-  version: "1.0.0",
+  version: "1.0.2",
   description: "An expansive MCP for the Gmail API"
 })
 
@@ -118,21 +118,21 @@ const formatEmailList = (emailList: string | null | undefined) => {
 const getQuotedContent = (thread: Thread) => {
   if (!thread.messages?.length) return ''
 
-  const sentMessages = thread.messages.filter(msg => 
-    msg.labelIds?.includes('SENT') || 
+  const sentMessages = thread.messages.filter(msg =>
+    msg.labelIds?.includes('SENT') ||
     (!msg.labelIds?.includes('DRAFT') && findHeader(msg.payload?.headers || [], 'date'))
   )
-  
+
   if (!sentMessages.length) return ''
 
   const lastMessage = sentMessages[sentMessages.length - 1]
   if (!lastMessage?.payload) return ''
 
   let quotedContent = []
-  
+
   if (lastMessage.payload.headers) {
     const fromHeader = findHeader(lastMessage.payload.headers || [], 'from')
-    const dateHeader = findHeader(lastMessage.payload.headers || [], 'date')  
+    const dateHeader = findHeader(lastMessage.payload.headers || [], 'date')
     if (fromHeader && dateHeader) {
       quotedContent.push('')
       quotedContent.push(`On ${dateHeader} ${fromHeader} wrote:`)
@@ -156,7 +156,7 @@ const getThreadHeaders = (thread: Thread) => {
 
   const lastMessage = thread.messages[thread.messages.length - 1]
   const references: string[] = []
-  
+
   let subjectHeader = findHeader(lastMessage.payload?.headers || [], 'subject')
   if (subjectHeader) {
     if (!subjectHeader.toLowerCase().startsWith('re:')) {
@@ -210,7 +210,7 @@ const constructRawMessage = async (params: NewMessage) => {
   message.push('Content-Transfer-Encoding: quoted-printable')
   message.push('MIME-Version: 1.0')
   message.push('')
-  
+
   if (params.body) message.push(wrapTextBody(params.body))
 
   if (thread) {
@@ -946,7 +946,7 @@ server.tool("remove_delegate",
   },
   async (params) => {
     return handleTool(async () => {
-        const { data } = await gmail.users.settings.delegates.delete({ userId: 'me', delegateEmail: params.delegateEmail })
+      const { data } = await gmail.users.settings.delegates.delete({ userId: 'me', delegateEmail: params.delegateEmail })
       return formatResponse(data)
     })
   }
