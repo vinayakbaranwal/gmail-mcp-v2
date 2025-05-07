@@ -24,7 +24,7 @@ To run this MCP server, you first need to set up a Google API Client for your or
 1. Go to the [Google Cloud Console](https://console.cloud.google.com).
 2. Create a new project or select an existing one.
 3. Enable the Gmail API for your project.
-4. Go to Credentials and create an OAuth 2.0 Client ID. Choose either "Desktop app", or "Web application with `http://localhost:3000/oauth2callback` as an Authorized Redirect URI.
+4. Go to Credentials and create an OAuth 2.0 Client ID. Choose either "Desktop app", or "Web application with `http://localhost:3000/oauth2callback` as an Authorized Redirect URI (if port `3000` is in use you can update this with `AUTH_SERVER_PORT`).
 5. Download and save the OAuth keys JSON as `~/.gmail-mcp/gcp-oauth.keys.json`.
 6. (Optional) For remote server installation (ex. using Smithery CLI), note the `CLIENT_ID` and `CLIENT_SECRET` from this file.
 
@@ -97,16 +97,16 @@ pnpm i && pnpm build
 
 ## Config Variables
 
-| Variable                 | Description                                             | Required?                       | Default Value                        |
+| Variable                 | Description                                             | Required?                       | Default                              |
 |--------------------------|---------------------------------------------------------|---------------------------------|--------------------------------------|
-| `AUTH_SERVER_PORT`       | Port for the OAuth authentication server                | No                              | `3000`                               |
+| `AUTH_SERVER_PORT`       | Port for the temporary OAuth authentication server      | No                              | `3000`                               |
 | `CLIENT_ID`              | Google API client ID (found in `GMAIL_OAUTH_PATH`)      | Yes if remote server connection | `''`                                 |
 | `CLIENT_SECRET`          | Google API client secret (found in `GMAIL_OAUTH_PATH`)  | Yes if remote server connection | `''`                                 |
 | `GMAIL_CREDENTIALS_PATH` | Path to the user credentials file                       | No                              | `MCP_CONFIG_DIR/credentials.json`    |
 | `GMAIL_OAUTH_PATH`       | Path to the Google API Client file                      | No                              | `MCP_CONFIG_DIR/gcp-oauth.keys.json` |
-| `LOG_PATH`               | Path to logs                                            | No                              | `MCP_CONFIG_DIR/gmail-mcp.log`       |
 | `MCP_CONFIG_DIR`         | Directory for storing configuration files               | No                              | `~/.gmail-mcp`                       |
 | `REFRESH_TOKEN`          | OAuth refresh token (found in `GMAIL_CREDENTIALS_PATH`) | Yes if remote server connection | `''`                                 |
+| `PORT`                   | Port for Streamable HTTP transport method               | No                              | `3000`                               |
 
 ## Supported Endpoints
 
