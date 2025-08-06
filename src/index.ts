@@ -1463,7 +1463,9 @@ const main = async () => {
             result: {
               protocolVersion: '2024-11-05',
               capabilities: {
-                tools: {},
+                tools: {
+                  listChanged: true
+                },
                 resources: {},
                 prompts: {},
                 logging: {}
