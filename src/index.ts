@@ -1396,17 +1396,7 @@ const main = async () => {
         const sessionId = req.query.sessionId as string
         const message = req.body
         
-        if (!sessionId) {
-          return res.status(400).json({
-            jsonrpc: '2.0',
-            id: message?.id || null,
-            error: {
-              code: -32001,
-              message: 'Session ID required',
-              data: 'sessionId query parameter is required'
-            }
-          })
-        }
+        // Accept any sessionId without validation (matching slack-mcp behavior)
         
         // Handle MCP methods
         let response
