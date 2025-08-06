@@ -1368,25 +1368,30 @@ const main = async () => {
     
     const server = createServer({})
     
-    // SSE endpoint - slack-mcp compatible
+    // Store for SSE connections - track by sessionId
+    const sseConnections = new Map<string, any>()
+    
+    // SSE endpoint for MCP communication - slack-mcp compatible
     app.get('/sse', (req, res) => {
+      const sessionId = crypto.randomUUID()
+      
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Cache-Control'
       })
       
-      // Generate session ID
-      const sessionId = crypto.randomUUID()
-      
-      // Send endpoint event with session ID (slack-mcp compatible)
+      // Send the endpoint with session ID (slack-mcp compatible format)
       res.write(`event: endpoint\ndata: /message?sessionId=${sessionId}\n\n`)
       
-      // Handle connection close
+      // Store the SSE connection with sessionId
+      sseConnections.set(sessionId, res)
+      
+      // Handle client disconnect
       req.on('close', () => {
-        res.end()
+        sseConnections.delete(sessionId)
       })
     })
     
@@ -1514,7 +1519,15 @@ const main = async () => {
           }
         }
         
-        return res.status(202).json(response)
+        // Send response via SSE event stream like slack-mcp
+        const sseConnection = sseConnections.get(sessionId)
+        if (sseConnection && !sseConnection.destroyed) {
+          const sseResponse = `event: message\ndata: ${JSON.stringify(response)}\n\n`
+          sseConnection.write(sseResponse)
+        }
+        
+        // Return HTTP 202 with no body like slack-mcp
+        return res.status(202).end()
       } catch (error) {
         return res.status(500).json({
           jsonrpc: '2.0',
