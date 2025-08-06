@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { createStatefulServer } from "@smithery/sdk/server/stateful.js"
 import express from "express"
 import cors from "cors"
+import crypto from "crypto"
 import { z } from "zod"
 import { google, gmail_v1 } from 'googleapis'
 import fs from "fs"
@@ -1367,7 +1368,7 @@ const main = async () => {
     
     const server = createServer({})
     
-    // SSE endpoint
+    // SSE endpoint - slack-mcp compatible
     app.get('/sse', (req, res) => {
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -1377,32 +1378,121 @@ const main = async () => {
         'Access-Control-Allow-Headers': 'Content-Type'
       })
       
-      // Send initial connection event
-      res.write('data: {"type":"connection","status":"connected"}\n\n')
+      // Generate session ID
+      const sessionId = crypto.randomUUID()
       
-      // Handle MCP protocol over SSE
+      // Send endpoint event with session ID (slack-mcp compatible)
+      res.write(`event: endpoint\ndata: /messages?sessionId=${sessionId}\n\n`)
+      
+      // Send initial status message
+      res.write('event: message\n')
+      res.write('data: {"jsonrpc":"2.0","id":1,"result":{"status":"connected","message":"Gmail MCP Server ready","server":"gmail-mcp","transport":"sse"}}\n\n')
+      
+      // Handle connection close
       req.on('close', () => {
         res.end()
       })
     })
     
-    // Messages endpoint for MCP communication
+    // Messages endpoint for MCP communication - slack-mcp compatible
     app.post('/messages', async (req, res) => {
       try {
-        // Handle MCP messages here
+        const sessionId = req.query.sessionId as string
         const message = req.body
         
-        // For now, return a basic response
-        res.json({ 
-          jsonrpc: '2.0',
-          id: message.id,
-          result: {
-            status: 'received',
-            message: 'Gmail MCP Server is running'
+        if (!sessionId) {
+          return res.status(400).json({
+            jsonrpc: '2.0',
+            id: message?.id || null,
+            error: {
+              code: -32001,
+              message: 'Session ID required',
+              data: 'sessionId query parameter is required'
+            }
+          })
+        }
+        
+        // Handle MCP methods
+        let response
+        if (message.method === 'tools/list') {
+          // Return Gmail MCP tools
+          response = {
+            jsonrpc: '2.0',
+            id: message.id,
+            result: {
+              tools: [
+                {
+                  name: 'gmail_search',
+                  description: 'Search for emails in Gmail',
+                  inputSchema: {
+                    type: 'object',
+                    properties: {
+                      query: { type: 'string', description: 'Search query' },
+                      maxResults: { type: 'number', description: 'Maximum results' }
+                    },
+                    required: ['query']
+                  }
+                },
+                {
+                  name: 'gmail_send',
+                  description: 'Send an email via Gmail',
+                  inputSchema: {
+                    type: 'object',
+                    properties: {
+                      to: { type: 'string', description: 'Recipient email' },
+                      subject: { type: 'string', description: 'Email subject' },
+                      body: { type: 'string', description: 'Email body' }
+                    },
+                    required: ['to', 'subject', 'body']
+                  }
+                },
+                {
+                  name: 'gmail_read',
+                  description: 'Read a specific email',
+                  inputSchema: {
+                    type: 'object',
+                    properties: {
+                      messageId: { type: 'string', description: 'Message ID' }
+                    },
+                    required: ['messageId']
+                  }
+                }
+              ]
+            }
           }
-        })
+        } else if (message.method === 'initialize') {
+          response = {
+            jsonrpc: '2.0',
+            id: message.id,
+            result: {
+              protocolVersion: '2024-11-05',
+              capabilities: {
+                tools: {},
+                resources: {},
+                prompts: {},
+                logging: {}
+              },
+              serverInfo: {
+                name: 'gmail-mcp',
+                version: '1.0.0'
+              }
+            }
+          }
+        } else {
+          // Handle other MCP methods through the server
+          response = {
+            jsonrpc: '2.0',
+            id: message.id,
+            result: {
+              status: 'received',
+              message: 'Gmail MCP Server is running'
+            }
+          }
+        }
+        
+        return res.json(response)
       } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
           jsonrpc: '2.0',
           id: req.body?.id,
           error: {

@@ -31,6 +31,6 @@ EXPOSE 3003
 
 USER node
 
-# Run HTTP server by default for production deployment
-# Use 'docker run -it <image> pnpm run start' for stdio mode if needed
-ENTRYPOINT ["node", "http-server.cjs"]
+# Run Gmail MCP server with SSE transport for production deployment
+# Use 'docker run -it <image> node dist/index.js' for stdio mode if needed
+ENTRYPOINT ["node", "dist/index.js", "--transport=sse"]
