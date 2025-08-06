@@ -1401,7 +1401,7 @@ const main = async () => {
         // Handle MCP methods
         let response
         if (message.method === 'tools/list') {
-          // Return Gmail MCP tools
+          // Return Gmail MCP tools in exact MCP specification format
           response = {
             jsonrpc: '2.0',
             id: message.id,
@@ -1413,8 +1413,14 @@ const main = async () => {
                   inputSchema: {
                     type: 'object',
                     properties: {
-                      query: { type: 'string', description: 'Search query' },
-                      maxResults: { type: 'number', description: 'Maximum results' }
+                      query: {
+                        type: 'string',
+                        description: 'Search query'
+                      },
+                      maxResults: {
+                        type: 'number',
+                        description: 'Maximum results'
+                      }
                     },
                     required: ['query']
                   }
@@ -1425,9 +1431,18 @@ const main = async () => {
                   inputSchema: {
                     type: 'object',
                     properties: {
-                      to: { type: 'string', description: 'Recipient email' },
-                      subject: { type: 'string', description: 'Email subject' },
-                      body: { type: 'string', description: 'Email body' }
+                      to: {
+                        type: 'string',
+                        description: 'Recipient email'
+                      },
+                      subject: {
+                        type: 'string',
+                        description: 'Email subject'
+                      },
+                      body: {
+                        type: 'string',
+                        description: 'Email body'
+                      }
                     },
                     required: ['to', 'subject', 'body']
                   }
@@ -1438,7 +1453,10 @@ const main = async () => {
                   inputSchema: {
                     type: 'object',
                     properties: {
-                      messageId: { type: 'string', description: 'Message ID' }
+                      messageId: {
+                        type: 'string',
+                        description: 'Message ID'
+                      }
                     },
                     required: ['messageId']
                   }
