@@ -1514,7 +1514,7 @@ const main = async () => {
           }
         }
         
-        return res.json(response)
+        return res.status(202).json(response)
       } catch (error) {
         return res.status(500).json({
           jsonrpc: '2.0',
