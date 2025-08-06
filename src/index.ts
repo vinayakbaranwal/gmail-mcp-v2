@@ -1410,6 +1410,12 @@ const main = async () => {
                 {
                   name: 'gmail_search',
                   description: 'Search for emails in Gmail',
+                  annotations: {
+                    readOnlyHint: false,
+                    destructiveHint: false,
+                    idempotentHint: true,
+                    openWorldHint: false
+                  },
                   inputSchema: {
                     type: 'object',
                     properties: {
@@ -1428,6 +1434,12 @@ const main = async () => {
                 {
                   name: 'gmail_send',
                   description: 'Send an email via Gmail',
+                  annotations: {
+                    readOnlyHint: false,
+                    destructiveHint: true,
+                    idempotentHint: false,
+                    openWorldHint: false
+                  },
                   inputSchema: {
                     type: 'object',
                     properties: {
@@ -1450,6 +1462,12 @@ const main = async () => {
                 {
                   name: 'gmail_read',
                   description: 'Read a specific email',
+                  annotations: {
+                    readOnlyHint: true,
+                    destructiveHint: false,
+                    idempotentHint: true,
+                    openWorldHint: false
+                  },
                   inputSchema: {
                     type: 'object',
                     properties: {
