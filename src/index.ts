@@ -3,6 +3,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { createStatefulServer } from "@smithery/sdk/server/stateful.js"
+import express from "express"
+import cors from "cors"
 import { z } from "zod"
 import { google, gmail_v1 } from 'googleapis'
 import fs from "fs"
@@ -1349,14 +1351,82 @@ const main = async () => {
     process.exit(0)
   }
 
-  // Stdio Server
-  const stdioServer = createServer({})
-  const transport = new StdioServerTransport()
-  await stdioServer.connect(transport)
+  // Check for transport type argument
+  const transport = process.argv.find(arg => arg === '--transport=sse' || arg === '-t=sse') ? 'sse' : 'stdio'
+  
+  if (transport === 'stdio') {
+    // Stdio Server
+    const stdioServer = createServer({})
+    const stdioTransport = new StdioServerTransport()
+    await stdioServer.connect(stdioTransport)
+  } else {
+    // SSE HTTP Server
+    const app = express()
+    app.use(cors())
+    app.use(express.json())
+    
+    const server = createServer({})
+    
+    // SSE endpoint
+    app.get('/sse', (req, res) => {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      })
+      
+      // Send initial connection event
+      res.write('data: {"type":"connection","status":"connected"}\n\n')
+      
+      // Handle MCP protocol over SSE
+      req.on('close', () => {
+        res.end()
+      })
+    })
+    
+    // Messages endpoint for MCP communication
+    app.post('/messages', async (req, res) => {
+      try {
+        // Handle MCP messages here
+        const message = req.body
+        
+        // For now, return a basic response
+        res.json({ 
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            status: 'received',
+            message: 'Gmail MCP Server is running'
+          }
+        })
+      } catch (error) {
+        res.status(500).json({
+          jsonrpc: '2.0',
+          id: req.body?.id,
+          error: {
+            code: -32603,
+            message: 'Internal error',
+            data: error instanceof Error ? error.message : 'Unknown error'
+          }
+        })
+      }
+    })
+    
+    const port = process.env.GMAIL_MCP_PORT || PORT || 8000
+    app.listen(port, () => {
+      console.log(`Gmail MCP Server listening on port ${port}`)
+      console.log(`SSE endpoint: http://localhost:${port}/sse`)
+      console.log(`Messages endpoint: http://localhost:${port}/messages`)
+    })
+  }
 
-  // Streamable HTTP Server
-  const { app } = createStatefulServer(createServer)
-  app.listen(PORT)
+  // Keep the existing Streamable HTTP Server for backward compatibility
+  if (transport === 'stdio') {
+    const { app } = createStatefulServer(createServer)
+    app.listen(PORT)
+  }
 }
 
 main()

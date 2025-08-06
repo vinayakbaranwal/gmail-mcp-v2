@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node ./dist/index.js",
+    "start:http": "node http-server.cjs",
     "auth": "node ./dist/index.js auth",
     "test": "jest"
   },
@@ -16,6 +17,8 @@
     "@modelcontextprotocol/sdk": "1.16.0",
     "@shinzolabs/instrumentation-mcp": "^1.0.8",
     "@smithery/sdk": "1.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "google-auth-library": "9.15.1",
     "googleapis": "129.0.0",
     "open": "9.1.0",
@@ -27,6 +30,8 @@
     "@babel/preset-env": "7.27.2",
     "@babel/preset-typescript": "7.27.1",
     "@changesets/cli": "2.29.4",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/jest": "29.5.14",
     "@types/node": "20.17.27",
     "babel-jest": "29.7.0",

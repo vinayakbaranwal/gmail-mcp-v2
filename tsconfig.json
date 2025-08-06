@@ -17,6 +17,7 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
+    "incremental": true,
     "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
   "include": [
