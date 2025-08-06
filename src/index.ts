@@ -1382,11 +1382,7 @@ const main = async () => {
       const sessionId = crypto.randomUUID()
       
       // Send endpoint event with session ID (slack-mcp compatible)
-      res.write(`event: endpoint\ndata: /messages?sessionId=${sessionId}\n\n`)
-      
-      // Send initial status message
-      res.write('event: message\n')
-      res.write('data: {"jsonrpc":"2.0","id":1,"result":{"status":"connected","message":"Gmail MCP Server ready","server":"gmail-mcp","transport":"sse"}}\n\n')
+      res.write(`event: endpoint\ndata: /message?sessionId=${sessionId}\n\n`)
       
       // Handle connection close
       req.on('close', () => {
@@ -1395,7 +1391,7 @@ const main = async () => {
     })
     
     // Messages endpoint for MCP communication - slack-mcp compatible
-    app.post('/messages', async (req, res) => {
+    app.post('/message', async (req, res) => {
       try {
         const sessionId = req.query.sessionId as string
         const message = req.body
@@ -1508,7 +1504,7 @@ const main = async () => {
     app.listen(port, () => {
       console.log(`Gmail MCP Server listening on port ${port}`)
       console.log(`SSE endpoint: http://localhost:${port}/sse`)
-      console.log(`Messages endpoint: http://localhost:${port}/messages`)
+      console.log(`Messages endpoint: http://localhost:${port}/message`)
     })
   }
 
